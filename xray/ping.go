@@ -29,3 +29,23 @@ func Ping(datDir string, configPath string, timeout int, url string, proxy strin
 
 	return delay, nil
 }
+
+func PingFromJSON(datDir string, configJSON string, timeout int, url string, proxy string) (int64, error) {
+	InitEnv(datDir)
+	server, err := StartXrayFromJSON(configJSON)
+	if err != nil {
+		return nodep.PingDelayError, err
+	}
+
+	if err := server.Start(); err != nil {
+		return nodep.PingDelayError, err
+	}
+	defer server.Close()
+
+	delay, err := nodep.MeasureDelay(timeout, url, proxy)
+	if err != nil {
+		return delay, err
+	}
+
+	return delay, nil
+}

@@ -81,6 +81,14 @@ type pingRequest struct {
 	Proxy      string `json:"proxy,omitempty"`
 }
 
+type pingJSONRequest struct {
+	DatDir     string `json:"datDir,omitempty"`
+	ConfigJSON string `json:"configJSON,omitempty"`
+	Timeout    int    `json:"timeout,omitempty"`
+	Url        string `json:"url,omitempty"`
+	Proxy      string `json:"proxy,omitempty"`
+}
+
 // Ping Xray config and get the delay of its outbound.
 func Ping(base64Text string) string {
 	var response nodep.CallResponse[int64]
@@ -96,6 +104,22 @@ func Ping(base64Text string) string {
 	delay, err := xray.Ping(request.DatDir, request.ConfigPath, request.Timeout, request.Url, request.Proxy)
 	return response.EncodeToBase64(delay, err)
 }
+
+func PingFromJSON(base64Text string) string {
+	var response nodep.CallResponse[int64]
+	req, err := base64.StdEncoding.DecodeString(base64Text)
+	if err != nil {
+		return response.EncodeToBase64(nodep.PingDelayError, err)
+	}
+	var request pingJSONRequest
+	err = json.Unmarshal(req, &request)
+	if err != nil {
+		return response.EncodeToBase64(nodep.PingDelayError, err)
+	}
+	delay, err := xray.PingFromJSON(request.DatDir, request.ConfigJSON, request.Timeout, request.Url, request.Proxy)
+	return response.EncodeToBase64(delay, err)
+}
+
 
 // query inbound and outbound stats.
 func QueryStats(base64Text string) string {
