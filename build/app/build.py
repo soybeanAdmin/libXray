@@ -5,6 +5,10 @@ import subprocess
 
 from app.cmd import delete_file_if_exists, delete_dir_if_exists
 
+GOMOBILE_VERSION = "v0.0.0-20250813145510-f12310a0cfd9"
+GENPROTO_VERSION = "v0.0.0-20250818200422-3122310a409c"
+GENPROTO_RPC_VERSION = "v0.0.0-20250811230008-5f3141c8851a"
+
 
 class Builder(object):
     def __init__(self, build_dir: str):
@@ -52,19 +56,30 @@ class Builder(object):
 
     def prepare_gomobile(self):
         ret = subprocess.run(
-            ["go", "install", "golang.org/x/mobile/cmd/gomobile@latest"]
+            ["go", "install", f"golang.org/x/mobile/cmd/gomobile@{GOMOBILE_VERSION}"]
         )
         if ret.returncode != 0:
             raise Exception("go install gomobile failed")
         ret = subprocess.run(["gomobile", "init"])
         if ret.returncode != 0:
             raise Exception("gomobile init failed")
-        ret = subprocess.run(["go", "get", "golang.org/x/mobile/cmd/gomobile"])
+        ret = subprocess.run(
+            ["go", "get", f"golang.org/x/mobile/cmd/gomobile@{GOMOBILE_VERSION}"]
+        )
         if ret.returncode != 0:
             raise Exception("gomobile update failed")
-        ret = subprocess.run(["go", "get", "google.golang.org/genproto"])
+        ret = subprocess.run(["go", "get", f"google.golang.org/genproto@{GENPROTO_VERSION}"])
         if ret.returncode != 0:
             raise Exception("gomobile install genproto failed")
+        ret = subprocess.run(
+            [
+                "go",
+                "get",
+                f"google.golang.org/genproto/googleapis/rpc@{GENPROTO_RPC_VERSION}",
+            ]
+        )
+        if ret.returncode != 0:
+            raise Exception("gomobile install genproto rpc failed")
 
     def prepare_static_lib(self):
         self.copy_template_file()
